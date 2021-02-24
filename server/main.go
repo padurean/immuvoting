@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/subtle"
 	"errors"
 	"fmt"
 	"log"
@@ -13,27 +12,14 @@ const (
 	port      = "8080"
 	adminUser = "admin"
 	adminPass = "admin"
+
+	// NikkiHaley candidate
+	NikkiHaley = 1
+	// KamalaHarris candidate
+	KamalaHarris = 2
 )
 
 var immudbClient = ImmudbClient{}
-
-// BasicAuth middleware
-func BasicAuth(handler http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		user, pass, ok := r.BasicAuth()
-		if !ok ||
-			subtle.ConstantTimeCompare([]byte(user), []byte(adminUser)) != 1 ||
-			subtle.ConstantTimeCompare([]byte(pass), []byte(adminPass)) != 1 {
-			w.Header().Set(
-				"WWW-Authenticate",
-				`Basic realm="Please enter your username and password"`)
-			w.WriteHeader(401)
-			w.Write([]byte("You are Unauthorized to access the application.\n"))
-			return
-		}
-		handler(w, r)
-	}
-}
 
 func main() {
 	fmt.Println(
@@ -70,10 +56,13 @@ func main() {
 	}
 
 	// setup HTTP handlers
-	http.HandleFunc("/register-voter", BasicAuth(registerVoterHandler))
-	http.HandleFunc("/vote", BasicAuth(voteHandler))
-	http.HandleFunc("/voter-status", BasicAuth(getVoterStatusHandler))
-	http.HandleFunc("/ballot", BasicAuth(getBallotHandler))
+	http.HandleFunc("/register-voter", cors(registerVoterHandler))
+	http.HandleFunc("/vote", cors(voteHandler))
+	http.HandleFunc("/voter-status", cors(getVoterStatusHandler))
+	http.HandleFunc("/ballot", cors(getBallotHandler))
+	http.HandleFunc("/state", cors(getStateHandler))
+	http.HandleFunc("/results", cors(getResultsHandler))
+	// NOTE: to add a handler which requires auth, wrap the handler with corsAndBasicAuth(...)
 	fmt.Println("listening on port", port)
 
 	// start server

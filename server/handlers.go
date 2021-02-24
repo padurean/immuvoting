@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/subtle"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -11,6 +12,51 @@ import (
 
 	"github.com/codenotary/immudb/pkg/api/schema"
 )
+
+type middleware func(http.HandlerFunc) http.HandlerFunc
+
+// builds the middleware chain recursively
+func chain(handler http.HandlerFunc, m ...middleware) http.HandlerFunc {
+	if len(m) == 0 {
+		return handler
+	}
+	return m[0](chain(handler, m[1:]...))
+}
+
+// CORS middleware
+func cors(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		if r.Method == "OPTIONS" {
+			return
+		}
+		handler(w, r)
+	}
+}
+
+// basicAuth middleware
+func basicAuth(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user, pass, ok := r.BasicAuth()
+		if !ok ||
+			subtle.ConstantTimeCompare([]byte(user), []byte(adminUser)) != 1 ||
+			subtle.ConstantTimeCompare([]byte(pass), []byte(adminPass)) != 1 {
+			w.Header().Set(
+				"WWW-Authenticate",
+				`Basic realm="Please enter your username and password"`)
+			w.WriteHeader(401)
+			w.Write([]byte("You are Unauthorized to access the application.\n"))
+			return
+		}
+		handler(w, r)
+	}
+}
+
+func corsAndBasicAuth(handler http.HandlerFunc) http.HandlerFunc {
+	return chain(handler, cors, basicAuth)
+}
 
 // RegisterVoterRequest ...
 type RegisterVoterRequest struct {
@@ -301,4 +347,24 @@ func getBallotHandler(w http.ResponseWriter, r *http.Request) {
 	resPayload := GetBallotResponse{Vote: binary.BigEndian.Uint16(ballotBytes)}
 
 	writeJSONResponse(r, w, http.StatusOK, &resPayload)
+}
+
+func getStateHandler(w http.ResponseWriter, r *http.Request) {
+	if !isHTTPMethodValid(r, w, http.MethodGet) {
+		return
+	}
+	state, err := immudbClient.CurrentState()
+	if err != nil {
+		writeErrorResponse(r, w, http.StatusInternalServerError, err,
+			"error fetching current state")
+		return
+	}
+	writeJSONResponse(r, w, http.StatusOK, state)
+}
+
+func getResultsHandler(w http.ResponseWriter, r *http.Request) {
+	if !isHTTPMethodValid(r, w, http.MethodGet) {
+		return
+	}
+	// TODO OGG: implement
 }

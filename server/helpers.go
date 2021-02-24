@@ -47,12 +47,10 @@ func writeJSONResponse(
 	statusCode int,
 	body interface{}) {
 
+	statusText := http.StatusText(statusCode)
 	log.Print(fmt.Sprintf(
-		"%s %s - writing SUCCESS http %d response with json data: %+v",
-		r.Method,
-		r.URL.Path,
-		statusCode,
-		body))
+		"%s %s %d %s",
+		r.Method, r.URL.Path, statusCode, statusText))
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(body)

@@ -1,0 +1,52 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  margin: 1em;
+}
+
+a {
+  color: #244484;
+}
+
+body > header {
+  text-align: center;
+  height: 6em;
+}
+body > header > img {
+  height: 5em;
+}
+body > section {
+  margin-top: 2em;
+  /*
+  Push footer to screen bottom: subtract body' margin-top, header's height,
+  this section's margin top, footer's height, body's margin-bottom.
+  */
+  min-height: calc(100vh - 1em - 6em - 2em - 1em - 1em);
+}
+body > footer {
+  text-align: center;
+  height: 1em;
+  font-size: .85em
+}
+
+body > section > section {
+  display: inline-block;
+  border: .25em solid;
+  width: 30%;
+  min-height: 53vh;
+  text-align: center;
+}
+
+body > section > section.left {
+  float: left;
+  border-color: #3C3B6E;
+}
+
+body > section > section.right {
+  float: right;
+  border-color: #B22234;
+}
+
+body > section > section > img {
+  height: 50vh;
+}
+
