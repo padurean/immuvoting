@@ -1,4 +1,4 @@
-# immuvoting
+<img src="./client/immuvoting-logo.svg" height="50">
 
 ```console
     _                                       __  _
