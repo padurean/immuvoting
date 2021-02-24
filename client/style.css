@@ -5,22 +5,23 @@ body {
 
 a {
   color: #244484;
+  font-weight: 500;
 }
 
 body > header {
   text-align: center;
-  height: 6em;
-}
-body > header > img {
   height: 5em;
 }
+body > header > img {
+  height: 4em;
+}
 body > section {
-  margin-top: 2em;
+  margin-top: 1em;
   /*
   Push footer to screen bottom: subtract body' margin-top, header's height,
   this section's margin top, footer's height, body's margin-bottom.
   */
-  min-height: calc(100vh - 1em - 6em - 2em - 1em - 1em);
+  min-height: calc(100vh - 1em - 5em - 1em - 1em - 1em);
 }
 body > footer {
   text-align: center;
@@ -28,25 +29,50 @@ body > footer {
   font-size: .85em
 }
 
-body > section > section {
+body > section > figure {
   display: inline-block;
-  border: .25em solid;
-  width: 30%;
-  min-height: 53vh;
+  margin: 0;
+  width: 50%;
   text-align: center;
 }
 
-body > section > section.left {
+body > section > figure.left {
   float: left;
-  border-color: #3C3B6E;
 }
 
-body > section > section.right {
+body > section > figure.right {
   float: right;
-  border-color: #B22234;
 }
 
-body > section > section > img {
-  height: 50vh;
+body > section > figure > img {
+  width: 90%;
+}
+body > section > figure > figcaption {
+  display: inline-block;
+  width: 90%;
+  font-weight: 500;
+  font-size: 1.1em;
+  color: #fff;
+  padding: .25em;
+}
+body > section > figure.left > figcaption {
+  background-color: #1022CC;
+}
+body > section > figure.right > figcaption {
+  background-color: #BB0001;
 }
 
+/* media queries */
+@media only screen and (min-width: 568px) {
+  body > section > figure {
+    width: 30%;
+  }
+}
+@media only screen and (min-width: 992px) {
+  body > header > img {
+    height: 5em;
+  }
+  body > section > figure {
+    width: 25%;
+  }
+}
