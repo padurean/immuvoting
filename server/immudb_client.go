@@ -518,3 +518,18 @@ func (c *ImmudbClient) CurrentState() (*schema.ImmutableState, error) {
 		func() (interface{}, error) { return c.immudbClient.CurrentState(c.ctx, e) })
 	return currentState.(*schema.ImmutableState), err
 }
+
+// VerifiableTXByID ...
+func (c *ImmudbClient) VerifiableTXByID(serverTX uint64, localTX uint64) (*schema.VerifiableTx, error) {
+	if err := c.ensureConnected(false); err != nil {
+		return nil, err
+	}
+	verifiableTX, err := c.execute(
+		func() (interface{}, error) {
+			return c.immudbClient.VerifiableTxById(c.ctx, &schema.VerifiableTxRequest{
+				Tx:           serverTX,
+				ProveSinceTx: localTX,
+			})
+		})
+	return verifiableTX.(*schema.VerifiableTx), err
+}

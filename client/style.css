@@ -56,10 +56,10 @@ body > section > figure > figcaption {
   padding: .25em;
 }
 body > section > figure.left > figcaption {
-  background-color: #1022CC;
+  background-color: #00aef3;
 }
 body > section > figure.right > figcaption {
-  background-color: #BB0001;
+  background-color: #C41212;
 }
 
 /* media queries */

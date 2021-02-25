@@ -2,11 +2,13 @@ package main
 
 import (
 	"crypto/subtle"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -349,6 +351,12 @@ func getBallotHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSONResponse(r, w, http.StatusOK, &resPayload)
 }
 
+// GetStateResponse ...
+type GetStateResponse struct {
+	TXID   uint64 `json:"tx_id"`
+	TXHash string `json:"tx_hash"`
+}
+
 func getStateHandler(w http.ResponseWriter, r *http.Request) {
 	if !isHTTPMethodValid(r, w, http.MethodGet) {
 		return
@@ -359,7 +367,48 @@ func getStateHandler(w http.ResponseWriter, r *http.Request) {
 			"error fetching current state")
 		return
 	}
-	writeJSONResponse(r, w, http.StatusOK, state)
+	res := GetStateResponse{TXID: state.TxId, TXHash: base64.StdEncoding.EncodeToString(state.TxHash)}
+	writeJSONResponse(r, w, http.StatusOK, &res)
+}
+
+func getVerifiableTransactionHandler(w http.ResponseWriter, r *http.Request) {
+	if !isHTTPMethodValid(r, w, http.MethodGet) {
+		return
+	}
+
+	serverTXStr := r.URL.Query().Get("server_tx")
+	if len(serverTXStr) == 0 {
+		writeErrorResponse(r, w, http.StatusBadRequest, nil,
+			"server_tx query param is missing")
+		return
+	}
+	serverTX, err := strconv.ParseUint(serverTXStr, 10, 64)
+	if err != nil {
+		writeErrorResponse(r, w, http.StatusBadRequest, err,
+			"server_tx query param is not an unisigned int")
+		return
+	}
+
+	localTXStr := r.URL.Query().Get("local_tx")
+	if len(serverTXStr) == 0 {
+		writeErrorResponse(r, w, http.StatusBadRequest, nil,
+			"local_tx query param is missing")
+		return
+	}
+	localTX, err := strconv.ParseUint(localTXStr, 10, 64)
+	if err != nil {
+		writeErrorResponse(r, w, http.StatusBadRequest, err,
+			"local_tx query param is not an unisigned int")
+		return
+	}
+
+	verifiableTX, err := immudbClient.VerifiableTXByID(serverTX, localTX)
+	if err != nil {
+		writeErrorResponse(r, w, http.StatusInternalServerError, err,
+			"error fetching verifiable transaction")
+		return
+	}
+	writeJSONResponse(r, w, http.StatusOK, verifiableTX)
 }
 
 func getResultsHandler(w http.ResponseWriter, r *http.Request) {

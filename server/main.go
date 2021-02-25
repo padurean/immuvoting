@@ -61,6 +61,7 @@ func main() {
 	http.HandleFunc("/voter-status", cors(getVoterStatusHandler))
 	http.HandleFunc("/ballot", cors(getBallotHandler))
 	http.HandleFunc("/state", cors(getStateHandler))
+	http.HandleFunc("/verifiable-tx", cors(getVerifiableTransactionHandler))
 	http.HandleFunc("/results", cors(getResultsHandler))
 	// NOTE: to add a handler which requires auth, wrap the handler with corsAndBasicAuth(...)
 	fmt.Println("listening on port", port)

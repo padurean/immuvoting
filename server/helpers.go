@@ -69,7 +69,7 @@ func writeErrorResponse(
 		msgErr += ": " + err.Error()
 	}
 	log.Print(fmt.Sprintf(
-		"%s %s %d %s - %s",
+		"%s %s %d %s - ERROR: %s",
 		r.Method, r.URL.Path, statusCode, statusText, msgErr))
 	w.WriteHeader(statusCode)
 	w.Write([]byte(http.StatusText(statusCode) + ": " + msg))

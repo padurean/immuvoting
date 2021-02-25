@@ -1,6 +1,6 @@
 module github.com/padurean/immuvoting
 
-go 1.15
+go 1.16
 
 require (
 	github.com/codenotary/immudb v0.9.2-0.20210218165443-053d9a7cb548
