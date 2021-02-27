@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/codenotary/immudb/pkg/api/schema"
+	"google.golang.org/grpc/status"
 )
 
 type middleware func(http.HandlerFunc) http.HandlerFunc
@@ -404,8 +405,11 @@ func getVerifiableTransactionHandler(w http.ResponseWriter, r *http.Request) {
 
 	verifiableTX, err := immudbClient.VerifiableTXByID(serverTX, localTX)
 	if err != nil {
-		writeErrorResponse(r, w, http.StatusInternalServerError, err,
-			"error fetching verifiable transaction")
+		httpErrCode := http.StatusInternalServerError
+		if grpcStatus, ok := status.FromError(err); ok && grpcStatus.Message() == "tx not found" {
+			httpErrCode = http.StatusNotFound
+		}
+		writeErrorResponse(r, w, httpErrCode, err, "error fetching verifiable transaction")
 		return
 	}
 	writeJSONResponse(r, w, http.StatusOK, verifiableTX)

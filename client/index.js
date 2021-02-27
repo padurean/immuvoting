@@ -1,12 +1,7 @@
 const serverURL = "http://localhost:8080"
 
 const fetchStateAndVerifyConsistency = async () => {
-  const stateResponse = await fetch(serverURL + '/state');
-  const serverState = await stateResponse.json();
-  // TODO OGG: load local state from local storage
-  const localState = serverState;
-  console.log("curr state:", serverState)
-  VerifyConsistency(localState, serverState, serverURL);
+  VerifyConsistency(serverURL);
 }
 
 document.addEventListener("DOMContentLoaded", function() {
