@@ -64,7 +64,7 @@ func VerifyConsistency(this js.Value, args []js.Value) interface{} {
 			return
 		}
 		var serverState State
-		if _, err := httpDo(&client, req, &serverState); err != nil {
+		if _, err := httpDo(&client, req, &serverState, "server state:"); err != nil {
 			println(err.Error())
 			return
 		}
@@ -83,7 +83,7 @@ func VerifyConsistency(this js.Value, args []js.Value) interface{} {
 				return
 			}
 			var vTX schema.VerifiableTx
-			if httpStatus, err := httpDo(&client, req, &vTX); err != nil {
+			if httpStatus, err := httpDo(&client, req, &vTX, ""); err != nil {
 				errMsg := err.Error()
 				if httpStatus == http.StatusNotFound {
 					errMsg = fmt.Sprintf(
@@ -99,10 +99,7 @@ func VerifyConsistency(this js.Value, args []js.Value) interface{} {
 			serverTXHash := schema.DigestFrom(serverState.TXHash)
 			verified = store.VerifyDualProof(
 				proof, localState.TXID, serverState.TXID, localTXHash, serverTXHash)
-			println(
-				"local (tx=", localState.TXID, ", hash=", fmt.Sprintf("%s", localTXHash), "), ",
-				"server (tx=", serverState.TXID, ", hash=", fmt.Sprintf("%s", serverTXHash), "), ",
-				"verified:", verified)
+			println("verified:", verified)
 		}
 
 		// override the local state with the fresh server state
@@ -121,7 +118,7 @@ func VerifyConsistency(this js.Value, args []js.Value) interface{} {
 	return nil
 }
 
-func httpDo(client *http.Client, req *http.Request, out interface{}) (int, error) {
+func httpDo(client *http.Client, req *http.Request, out interface{}, printRawPayload string) (int, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		return 0, fmt.Errorf("error executing HTTP request %s: %s", req.URL, err)
@@ -136,6 +133,9 @@ func httpDo(client *http.Client, req *http.Request, out interface{}) (int, error
 	if httpStatus < 200 || httpStatus > 299 {
 		return httpStatus, fmt.Errorf(
 			"%s responded with non-200 range code %d", req.URL, httpStatus)
+	}
+	if len(printRawPayload) > 0 {
+		print(printRawPayload, fmt.Sprintf("%s", bodyBytes))
 	}
 	if err := json.Unmarshal(bodyBytes, out); err != nil {
 		return httpStatus, fmt.Errorf(
