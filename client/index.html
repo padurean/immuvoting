@@ -10,19 +10,86 @@
   <link href="style.css" rel="stylesheet">
 </head>
 <body>
+  <aside id="notification-bar" class="notification-bar hidden">
+    <span id="notification-message"></span>
+    <a href="#" id="close-notification-bar">&#10005;</a>
+  </aside>
   <header>
     <img src="immuvoting-logo.svg" alt="immuvoting - elections anyone can verify">
   </header>
-  <section>
+  <main>
     <figure class="left">
       <img src="kamala_harris_bw.jpg" alt="Kamala Harris">
       <figcaption>Kamala Harris</figcaption>
+      <div><span id="harris-votes">-</span> votes</div>
+      <a href="#" id="btn-vote-harris" class="btn hidden">Vote Harris Now!</a>
     </figure>
     <figure class="right">
       <img src="nikki_haley_bw.jpg" alt="Nikki Haley">
       <figcaption>Nikki Haley</figcaption>
+      <div><span id="haley-votes">-</span> votes</div>
+      <a href="#" id="btn-vote-haley" class="btn hidden">Vote Haley Now!</a>
     </figure>
-  </section>
+    <section class="stats-and-actions">
+
+      <table>
+        <tr><td>Registered voters:</td><td id="registered" class="number">-</td></tr>
+        <tr><td>Ballots cast:</td><td id="ballots" class="number">-</td></tr>
+      </table>
+
+      <details id="election-audit" class="election-audit">
+        <summary>Election Audit</summary>
+        <table>
+          <tr><td class="audit-label">Tampering verification:</td></tr>
+          <tr><td id="tampering-result" class="audit-result"><em>Did not run yet</em></td></tr>
+          <tr><td class="audit-label">Random ballot verification:</td></tr>
+          <tr><td id="random-ballot-result" class="audit-result"><em>Did not run yet</em></td></tr>
+        </table>
+      </details>
+
+      <section id="registration-panel" class="registration-panel hidden">
+        <input id="id-number-input" placeholder="ID Number" required>
+        <input id="name-input" placeholder="Name" required>
+        <input id="address-input" placeholder="Address" required>
+        <input id="email-input" placeholder="Email" type="email" required>
+        <a id="register-btn" class="btn" href="#">Register to Vote</a>
+        <a id="already-registered-btn" href="#" style="text-align: center;">Already Registered</a>
+      </section>
+
+      <details id="voter-and-ballot-ids" class="voter-and-ballot-ids hidden">
+        <summary>Your Ballot</summary>
+        <table>
+          <tr><td>Ballot Status:</td></tr>
+          <tr><td class="uuid" id="ballot-status" style="font-weight: 500;">Not cast</td></tr>
+          <tr><td>Ballot ID:</td></tr>
+          <tr><td class="uuid"><input id="ballot-id" placeholder="Enter your ballot ID"></td></tr>
+          <tr><td>Voter ID:</td></tr>
+          <tr><td class="uuid"><input id="voter-id" placeholder="Enter your voter ID"></td></tr>
+        </table>
+        <div id="voting-tips" class="tip">
+          <a href="#" onclick="event.preventDefault(); this.parentNode.classList.add('hidden');" style="float: right; text-decoration: none;">Dismiss</a>
+          <strong><em>TIPs:</em></strong>
+          <ul>
+            <li>There is no association between the <strong>Ballot ID</strong> and you:
+              <strong>no one</strong> (except you) <strong>knows your ballot</strong>.
+              Make sure you copy it and store it somewhere safe.
+            </li>
+            <li>
+              Regarding your <strong>Voter ID</strong>, in case you forget it before casting the ballot,
+              you can still vote by using your legal ID instead (i.e. the one that you've
+              submitted during registration).
+            </li>
+            <li>After registering you can cast your ballot by clicking on the
+              <strong>Vote ... Now!</strong> button below your favorite candidate.
+            </li>
+          </ul>
+        </div>
+
+        <a href="#" id="btn-clean-up-voter" class="btn">Clean-Up &amp; Start Over</a>
+      </details>
+
+    </section>
+  </main>
   <footer>
     <span>2021</span> &copy; <a href="https://www.codenotary.com">CodeNotary</a>
   </footer>

@@ -533,3 +533,19 @@ func (c *ImmudbClient) VerifiableTXByID(serverTX uint64, localTX uint64) (*schem
 		})
 	return verifiableTX.(*schema.VerifiableTx), err
 }
+
+// History ...
+func (c *ImmudbClient) History(key []byte) (*schema.Entries, error) {
+	if err := c.ensureConnected(false); err != nil {
+		return nil, err
+	}
+	entries, err := c.execute(
+		func() (interface{}, error) {
+			return c.immudbClient.History(c.ctx, &schema.HistoryRequest{
+				Key:    key,
+				Offset: 0,
+				Limit:  database.MaxKeyScanLimit,
+			})
+		})
+	return entries.(*schema.Entries), err
+}

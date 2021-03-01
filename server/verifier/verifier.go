@@ -100,6 +100,14 @@ func VerifyConsistency(this js.Value, args []js.Value) interface{} {
 			verified = store.VerifyDualProof(
 				proof, localState.TXID, serverState.TXID, localTXHash, serverTXHash)
 			println("verified:", verified)
+
+			now := time.Now().Format(time.RFC3339)
+			resultDOMElem := js.Global().Get("document").Call("getElementById", "tampering-result")
+			if !verified {
+				resultDOMElem.Set("innerHTML", "<span class=\"audit-failed\">Tampered!</span> @ "+now)
+			} else {
+				resultDOMElem.Set("innerHTML", "<span class=\"audit-ok\">OK</span> @ "+now)
+			}
 		}
 
 		// override the local state with the fresh server state
@@ -113,6 +121,7 @@ func VerifyConsistency(this js.Value, args []js.Value) interface{} {
 			}
 			js.Global().Get("localStorage").Call("setItem", "immuvotingState", string(serverStateBs))
 		}
+
 	}()
 
 	return nil

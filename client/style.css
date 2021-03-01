@@ -8,6 +8,44 @@ a {
   font-weight: 500;
 }
 
+body > aside.notification-bar {
+  display: block;
+  width: 100%;
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: .25em 1em;
+  color: #fff;
+}
+body > aside.notification-bar > span {
+  display: block;
+  margin-right: 3em;
+}
+body > aside.notification-bar > a {
+  position: fixed;
+  top: .1em;
+  right: .1em;
+  text-decoration: none;
+  background: rgba(0,0,0,.33);
+  color: #fff;
+  padding: .15em .35em;
+}
+.error {
+  color: #fff !important;
+  background-color: #f44336 !important;
+}
+.warning {
+  color: #000 !important;
+  background-color: #ffeb3b !important
+}
+.info {
+  color: #fff !important;
+  background-color: #4CAF50 !important
+}
+.hidden {
+  display: none !important;
+}
+
 body > header {
   text-align: center;
   height: 5em;
@@ -15,11 +53,11 @@ body > header {
 body > header > img {
   height: 4em;
 }
-body > section {
+body > main {
   margin-top: 1em;
   /*
   Push footer to screen bottom: subtract body' margin-top, header's height,
-  this section's margin top, footer's height, body's margin-bottom.
+  this main's margin top, footer's height, body's margin-bottom.
   */
   min-height: calc(100vh - 1em - 5em - 1em - 1em - 1em);
 }
@@ -29,50 +67,222 @@ body > footer {
   font-size: .85em
 }
 
-body > section > figure {
+body > main > figure {
   display: inline-block;
   margin: 0;
   width: 50%;
   text-align: center;
 }
 
-body > section > figure.left {
+body > main > figure.left {
   float: left;
 }
 
-body > section > figure.right {
+body > main > figure.right {
   float: right;
 }
 
-body > section > figure > img {
+body > main > figure > img {
   width: 90%;
 }
-body > section > figure > figcaption {
+body > main > figure > figcaption {
   display: inline-block;
   width: 90%;
   font-weight: 500;
-  font-size: 1.1em;
+  font-size: 1em;
   color: #fff;
   padding: .25em;
 }
-body > section > figure.left > figcaption {
-  background-color: #00aef3;
+body > main > figure > .btn {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  border: 2px solid #244484;
+  margin: .75em auto;
+  padding: .5em;
+  width: 80%;
 }
-body > section > figure.right > figcaption {
-  background-color: #C41212;
+body > main > figure.left > figcaption {
+  background-color: #3c70d8;
+}
+body > main > figure.right > figcaption {
+  background-color: #d32d17;
 }
 
-/* media queries */
+body > main > figure > div:first-of-type {
+  padding: .25em;
+  font-weight: 300;
+}
+body > main > figure > div:first-of-type > span {
+  font-weight: 500;
+}
+body > main > figure.left > div:first-of-type > span {
+  color: #3c70d8;
+}
+body > main > figure.right > div:first-of-type > span {
+  color: #d32d17;
+}
+body > main > figure.left > .btn {
+  color: #3c70d8;
+  border-color: #3c70d8;
+}
+body > main > figure.right > .btn {
+  color: #d32d17;
+  border-color: #d32d17;
+}
+
+body > main > section.stats-and-actions {
+  clear: both;
+  min-height: 15em;
+  width: 97%;
+  margin: 0 auto;
+  padding: 1em 0;
+}
+
+body > main > section.stats-and-actions > table {
+  width: 96%;
+  margin: 0 auto;
+}
+body > main > section.stats-and-actions > table td {
+  padding: .5em;
+  border-bottom: 1px dashed gainsboro;
+}
+body > main > section.stats-and-actions > table td.number {
+  text-align: right;
+}
+
+body > main > section.stats-and-actions > details.election-audit {
+  margin: 1em auto 2em auto;
+  padding: .25em .5em;
+  width: 72%;
+}
+body > main > section.stats-and-actions > details.election-audit > summary {
+  color: #244484;
+}
+body > main > section.stats-and-actions > details.election-audit table {
+  width: 98%;
+  border: 2px dashed #244484;
+  padding-bottom: 1em;
+  margin: .5em auto 0 auto;
+}
+body > main > section.stats-and-actions > details.election-audit td {
+  padding: .25em .5em;
+}
+body > main > section.stats-and-actions > details.election-audit td.audit-label {
+  padding-top: 1em;
+}
+body > main > section.stats-and-actions > details.election-audit td.audit-result {
+  font-weight: 500;
+}
+.audit-ok {
+  color: #4CAF50 !important;
+}
+.audit-failed {
+  color: #f44336 !important;
+}
+
+body > main > section.stats-and-actions > section.registration-panel {
+  border: 2px dashed gainsboro;
+  margin: 1em auto;
+  padding: .25em .5em;
+  width: 82%;
+}
+body > main > section.stats-and-actions > section.registration-panel > * {
+  display: block;
+  margin: .5em auto;
+  padding: .5em;
+  width: 90%;
+}
+body > main > section.stats-and-actions > section.registration-panel > input {
+  border-width: 0 0 1px 0;
+  border-style: solid;
+  border-color: gainsboro;
+  font-size: 1em;
+}
+body > main > section.stats-and-actions > section.registration-panel > .btn {
+  text-align: center;
+  text-decoration: none;
+  border: 2px solid #244484;
+  margin-top: .75em;
+  margin-bottom: .75em;
+}
+
+body > main > section.stats-and-actions > details.voter-and-ballot-ids {
+  margin: 1em auto;
+  padding: .25em .5em;
+  width: 90%;
+}
+body > main > section.stats-and-actions > details.voter-and-ballot-ids table {
+  width: 100%;
+  margin: .5em auto;
+  padding: .25em .5em 0 .5em;
+  border: 2px dashed gainsboro;
+}
+body > main > section.stats-and-actions > details.voter-and-ballot-ids td {
+  text-align: center;
+}
+body > main > section.stats-and-actions > details.voter-and-ballot-ids td.uuid {
+  padding-bottom: .75em;
+  color: #244484;
+}
+body > main > section.stats-and-actions > details.voter-and-ballot-ids td.uuid > input {
+  width: 92%;
+  text-align: center;
+  padding: .5em;
+  font-weight: 500;
+  font-size: 1em;
+  color: #244484;
+}
+body > main > section.stats-and-actions > details.voter-and-ballot-ids > .tip {
+  background-color: #4CAF50;
+  color: #fff;
+  padding: 1em;
+}
+body > main > section.stats-and-actions > details.voter-and-ballot-ids > .tip > ul {
+  padding: 0 0 0 1em;
+  margin-bottom: 0;
+  list-style-type: square;
+}
+body > main > section.stats-and-actions > details.voter-and-ballot-ids > .tip > ul > li {
+  margin-bottom: .5em;
+}
+body > main > section.stats-and-actions > details.voter-and-ballot-ids > .btn {
+  display: block;
+  margin: 1em auto .5em auto;
+  padding: .25em;
+  width: 95%;
+  text-align: center;
+  text-decoration: none;
+  border: 2px solid #f44336;
+  color: #f44336;
+}
+
+/* >>>>>>>>> media queries */
 @media only screen and (min-width: 568px) {
-  body > section > figure {
+  body > main > figure {
     width: 30%;
+  }
+  body > main > section.stats-and-actions > section.registration-panel {
+    width: 66%;
+  }
+  body > main > section.stats-and-actions > details.voter-and-ballot-ids {
+    width: 72%;
   }
 }
 @media only screen and (min-width: 992px) {
   body > header > img {
     height: 5em;
   }
-  body > section > figure {
+  body > main > figure {
     width: 25%;
   }
+  body > main > section.stats-and-actions {
+    clear: none;
+    width: 40%;
+    padding-top: 3em;
+  }
+  body > main > section.stats-and-actions > table {
+    width: 75%;
+  }
 }
+/* <<<<<<<<< media queries */

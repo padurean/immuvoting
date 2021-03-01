@@ -1,22 +1,32 @@
 package main
 
 import (
+	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"math/big"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/codenotary/immudb/pkg/api/schema"
+	"github.com/codenotary/immudb/pkg/database"
 	"google.golang.org/grpc/status"
 )
 
 type middleware func(http.HandlerFunc) http.HandlerFunc
+
+const (
+	voterPrefix   = "immuvoting:voter:"
+	citizenPrefix = "immuvoting:citizen:"
+	ballotPrefix  = "immuvoting:ballot:"
+)
 
 // builds the middleware chain recursively
 func chain(handler http.HandlerFunc, m ...middleware) http.HandlerFunc {
@@ -63,11 +73,10 @@ func corsAndBasicAuth(handler http.HandlerFunc) http.HandlerFunc {
 
 // RegisterVoterRequest ...
 type RegisterVoterRequest struct {
-	CitizenID   string    `json:"citizen_id"`
-	Name        string    `json:"name"`
-	DateOfBirth time.Time `json:"date_of_birth"`
-	Address     string    `json:"address"`
-	Email       string    `json:"email"`
+	CitizenID string `json:"citizen_id"`
+	Name      string `json:"name"`
+	Address   string `json:"address"`
+	Email     string `json:"email"`
 }
 
 func (req *RegisterVoterRequest) validate() error {
@@ -78,9 +87,6 @@ func (req *RegisterVoterRequest) validate() error {
 	if len(req.Name) == 0 {
 		errs = append(errs, "name is missing")
 	}
-	if req.DateOfBirth.IsZero() {
-		errs = append(errs, "date of birth is missing")
-	}
 	if len(req.Address) == 0 {
 		errs = append(errs, "address is missing")
 	}
@@ -89,7 +95,7 @@ func (req *RegisterVoterRequest) validate() error {
 	}
 
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		return errors.New(strings.Join(errs, ", "))
 	}
 	return nil
 }
@@ -125,7 +131,7 @@ func registerVoterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	citizenKey := []byte("immuvoting:citizen:" + payload.CitizenID)
+	citizenKey := []byte(citizenPrefix + payload.CitizenID)
 	if _, err := immudbClient.Get(citizenKey, 0); err == nil {
 		writeErrorResponse(r, w, http.StatusTooManyRequests, err, "already registered")
 		return
@@ -137,7 +143,7 @@ func registerVoterHandler(w http.ResponseWriter, r *http.Request) {
 			"error generating voter ID")
 		return
 	}
-	voterKey := []byte("immuvoting:voter:" + voterID)
+	voterKey := []byte(voterPrefix + voterID)
 	voterBytes, err := json.Marshal(&Voter{
 		RegisterVoterRequest: payload,
 		RegistrationApproved: time.Now()})
@@ -153,7 +159,7 @@ func registerVoterHandler(w http.ResponseWriter, r *http.Request) {
 			"error generating ballot ID")
 		return
 	}
-	ballotKey := []byte("immuvoting:ballot:" + ballotID)
+	ballotKey := []byte(ballotPrefix + ballotID)
 	ballotValue := make([]byte, 2)
 	binary.BigEndian.PutUint16(ballotValue, 0)
 
@@ -198,7 +204,7 @@ func (req *VoteRequest) validate() error {
 	}
 
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		return errors.New(strings.Join(errs, ", "))
 	}
 	return nil
 }
@@ -221,12 +227,17 @@ func voteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	voterKey := []byte("immuvoting:voter:" + payload.VoterID)
+	voterKey := []byte(voterPrefix + payload.VoterID)
 	voterBytes, err := immudbClient.Get(voterKey, 0)
 	if err != nil {
-		writeErrorResponse(r, w, http.StatusNotFound, err,
-			"voter has never been registered")
-		return
+		// try to get voter also by citizen ID
+		citizenKey := []byte(citizenPrefix + payload.VoterID)
+		voterBytes, err = immudbClient.Get(citizenKey, 0)
+		if err != nil {
+			writeErrorResponse(r, w, http.StatusNotFound, err,
+				"voter has never been registered")
+			return
+		}
 	}
 	var voter Voter
 	if err := json.Unmarshal(voterBytes, &voter); err != nil {
@@ -245,7 +256,7 @@ func voteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ballotKey := []byte("immuvoting:ballot:" + payload.BallotID)
+	ballotKey := []byte(ballotPrefix + payload.BallotID)
 	ballotBytes, err := immudbClient.Get(ballotKey, 0)
 	if err != nil {
 		writeErrorResponse(r, w, http.StatusNotFound, err, "no such ballot")
@@ -301,12 +312,17 @@ func getVoterStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	voterKey := []byte("immuvoting:voter:" + voterID)
+	voterKey := []byte(voterPrefix + voterID)
 	voterBytes, err := immudbClient.Get(voterKey, 0)
 	if err != nil {
-		writeErrorResponse(r, w, http.StatusNotFound, err,
-			"voter has never been registered")
-		return
+		// try to get voter also by citizen ID
+		citizenKey := []byte(citizenPrefix + voterID)
+		voterBytes, err = immudbClient.Get(citizenKey, 0)
+		if err != nil {
+			writeErrorResponse(r, w, http.StatusNotFound, err,
+				"voter has never been registered")
+			return
+		}
 	}
 	var voter Voter
 	if err := json.Unmarshal(voterBytes, &voter); err != nil {
@@ -325,7 +341,8 @@ func getVoterStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetBallotResponse ...
 type GetBallotResponse struct {
-	Vote uint16 `json:"vote"`
+	BallotID string `json:"ballot_id"`
+	Vote     uint16 `json:"vote"`
 }
 
 func getBallotHandler(w http.ResponseWriter, r *http.Request) {
@@ -340,14 +357,73 @@ func getBallotHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ballotKey := []byte("immuvoting:ballot:" + ballotID)
+	ballotKey := []byte(ballotPrefix + ballotID)
 	ballotBytes, err := immudbClient.Get(ballotKey, 0)
 	if err != nil {
 		writeErrorResponse(r, w, http.StatusNotFound, err, "no such ballot")
 		return
 	}
 
-	resPayload := GetBallotResponse{Vote: binary.BigEndian.Uint16(ballotBytes)}
+	resPayload := GetBallotResponse{
+		BallotID: ballotID,
+		Vote:     binary.BigEndian.Uint16(ballotBytes),
+	}
+
+	writeJSONResponse(r, w, http.StatusOK, &resPayload)
+}
+
+// RandomBallotResponse ...
+type RandomBallotResponse struct {
+	GetBallotResponse
+	History []uint16 `json:"history"`
+}
+
+func getRandomBallotHandler(w http.ResponseWriter, r *http.Request) {
+	if !isHTTPMethodValid(r, w, http.MethodGet) {
+		return
+	}
+
+	ballotEntries, err := immudbClient.Scan(
+		[]byte(ballotPrefix), database.MaxKeyScanLimit, nil, false)
+	if err != nil {
+		writeErrorResponse(r, w, http.StatusInternalServerError, err,
+			"error scanning ballots")
+		return
+	}
+
+	if len(ballotEntries) == 0 {
+		writeErrorResponse(r, w, http.StatusNotFound, err,
+			"no ballots have been cast yet")
+		return
+	}
+
+	randomBigInt, err := rand.Int(rand.Reader, big.NewInt(int64(len(ballotEntries))))
+	if err != nil {
+		writeErrorResponse(r, w, http.StatusInternalServerError, err,
+			"error generating random number")
+		return
+	}
+	randomBallotEntry := ballotEntries[randomBigInt.Int64()]
+
+	historyEntries, err := immudbClient.History(randomBallotEntry.GetKey())
+	if err != nil {
+		writeErrorResponse(r, w, http.StatusInternalServerError, err,
+			fmt.Sprintf("error loading history for random ballot %s",
+				strings.TrimPrefix(string(randomBallotEntry.GetKey()), ballotPrefix)))
+		return
+	}
+	history := make([]uint16, 0, len(historyEntries.GetEntries()))
+	for _, historyEntry := range historyEntries.GetEntries() {
+		history = append(history, binary.BigEndian.Uint16(historyEntry.GetValue()))
+	}
+
+	resPayload := RandomBallotResponse{
+		GetBallotResponse: GetBallotResponse{
+			BallotID: strings.TrimPrefix(string(randomBallotEntry.GetKey()), ballotPrefix),
+			Vote:     binary.BigEndian.Uint16(randomBallotEntry.GetValue()),
+		},
+		History: history,
+	}
 
 	writeJSONResponse(r, w, http.StatusOK, &resPayload)
 }
@@ -368,8 +444,9 @@ func getStateHandler(w http.ResponseWriter, r *http.Request) {
 			"error fetching current state")
 		return
 	}
-	res := GetStateResponse{TXID: state.TxId, TXHash: base64.StdEncoding.EncodeToString(state.TxHash)}
-	writeJSONResponse(r, w, http.StatusOK, &res)
+	resPayload := GetStateResponse{
+		TXID: state.TxId, TXHash: base64.StdEncoding.EncodeToString(state.TxHash)}
+	writeJSONResponse(r, w, http.StatusOK, &resPayload)
 }
 
 func getVerifiableTransactionHandler(w http.ResponseWriter, r *http.Request) {
@@ -412,12 +489,71 @@ func getVerifiableTransactionHandler(w http.ResponseWriter, r *http.Request) {
 		writeErrorResponse(r, w, httpErrCode, err, "error fetching verifiable transaction")
 		return
 	}
-	writeJSONResponse(r, w, http.StatusOK, verifiableTX)
+	writeJSONResponse(r, w, http.StatusOK, &verifiableTX)
 }
 
-func getResultsHandler(w http.ResponseWriter, r *http.Request) {
+// GetStatsResponse ...
+type GetStatsResponse struct {
+	Registered uint64            `json:"registered"`
+	Voted      uint64            `json:"voted"`
+	Ballots    uint64            `json:"ballots"`
+	Results    map[uint16]uint64 `json:"results"`
+}
+
+func getStatsHandler(w http.ResponseWriter, r *http.Request) {
 	if !isHTTPMethodValid(r, w, http.MethodGet) {
 		return
 	}
-	// TODO OGG: implement
+
+	resPayload := GetStatsResponse{
+		Results: make(map[uint16]uint64),
+	}
+
+	voterEntries, err := immudbClient.Scan(
+		[]byte(voterPrefix), database.MaxKeyScanLimit, nil, false)
+	if err != nil {
+		writeErrorResponse(r, w, http.StatusInternalServerError, err,
+			"error scanning voters")
+		return
+	}
+	resPayload.Registered = uint64(len(voterEntries))
+	for _, voterEntry := range voterEntries {
+		var voter Voter
+		if err := json.Unmarshal(voterEntry.GetValue(), &voter); err != nil {
+			log.Print(fmt.Sprintf(
+				"ERROR JSON-unmarshaling voter %s with key %s: %v",
+				voterEntry.GetValue(), voterEntry.GetKey(), err))
+			continue
+		}
+		if !voter.Voted.IsZero() {
+			resPayload.Voted++
+		}
+	}
+
+	ballotEntries, err := immudbClient.Scan(
+		[]byte(ballotPrefix), database.MaxKeyScanLimit, nil, false)
+	if err != nil {
+		writeErrorResponse(r, w, http.StatusInternalServerError, err,
+			"error scanning ballots")
+		return
+	}
+
+	for _, ballotEntry := range ballotEntries {
+		vote := binary.BigEndian.Uint16(ballotEntry.GetValue())
+		switch vote {
+		case KamalaHarris:
+			resPayload.Results[KamalaHarris] = resPayload.Results[KamalaHarris] + 1
+			resPayload.Ballots++
+		case NikkiHaley:
+			resPayload.Results[NikkiHaley] = resPayload.Results[NikkiHaley] + 1
+			resPayload.Ballots++
+		case 0:
+			// nothing to do: this ballot has not been cast yet
+		default:
+			log.Print(fmt.Sprintf(
+				"ERROR: ballot %s has invalid vote %d", ballotEntry.GetKey(), vote))
+		}
+	}
+
+	writeJSONResponse(r, w, http.StatusOK, &resPayload)
 }
