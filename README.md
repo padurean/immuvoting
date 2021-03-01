@@ -4,6 +4,8 @@ Electronic voting system allowing anyone to register as an auditor and verify th
 
 _Powered by_ **[immudb](https://github.com/codenotary/immudb)**
 
+---
+
 ## How to run it
 
 ### Prerequisites
@@ -27,3 +29,5 @@ _Powered by_ **[immudb](https://github.com/codenotary/immudb)**
 **That's all.** You can now access the fronted at _localhost:&lt;xxx&gt;_
 
 **_NOTE_**: Port number depends on the HTTP server you used: for [VSCode](https://code.visualstudio.com)'s _**Go Live**_ it's _**5500**_, for python's `SimpleHTTPServer` it's _**8000**_.
+
+---
