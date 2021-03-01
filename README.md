@@ -6,6 +6,10 @@ _Powered by_ **[immudb](https://github.com/codenotary/immudb)**
 
 ---
 
+## Short demo video
+
+[![immuvoting in action](./immuvoting-demo-thumbnail.png)](https://youtu.be/brFN6TzmI2M "immuvoting in action: demo video")
+
 ## How to run it
 
 ### Prerequisites
