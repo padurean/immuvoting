@@ -34,8 +34,8 @@ _Powered by_ **[immudb](https://github.com/codenotary/immudb)**
 
 ## Miscellanea
 
-- The cryptographic verification of the election data (a.k.a. the _consistency proof_ or _tampering proof_) is written in [Go](https://golang.org) and resides in the _server/verifier.go_ folder. It is compiled to WebAssembly (i.e. to _client/verifier.wasm_) and runs in the browser, on the voter's / auditor's machine, automatically at a fixed interval. For instructions on how to recompile it to WASM, see the [README](./server/verifier) in the _server/verifier_ folder.
+- The cryptographic verification of the election data (a.k.a. the _consistency proof_ or _tampering proof_) is written in [Go](https://golang.org) and resides in the _server/verifier.go_ folder. It is compiled to [WebAssembly](https://webassembly.org) (i.e. to _client/verifier.wasm_) and runs in the browser, on the voter's / auditor's machine, automatically at a fixed interval. For instructions on how to recompile it to WASM, see the [README](./server/verifier) in the _server/verifier_ folder.
 
-- **How it works: Consistency proofs and Merkle Trees**
+### How it works: Consistency proofs and Merkle Trees
 
-  - The cryptographic verification, a.k.a the _consistency proof_, is achieved by leveraging the core features of [immudb](https://www.codenotary.com/technologies/immudb/). It is based on [Merkle Trees](https://brilliant.org/wiki/merkle-tree/). More details about this can be read, for example, in [this article](https://transparency.dev/verifiable-data-structures/) or in [this one](https://computersciencewiki.org/index.php/Merkle_proof) which explains the [Merkle proofs](https://computersciencewiki.org/index.php/Merkle_proof).
+- The cryptographic verification, a.k.a the _consistency proof_, is achieved by leveraging the core features of [immudb](https://www.codenotary.com/technologies/immudb/). It is based on [Merkle Trees](https://brilliant.org/wiki/merkle-tree/). More details about this can be read, for example, in [this article](https://transparency.dev/verifiable-data-structures/) or in [this one](https://computersciencewiki.org/index.php/Merkle_proof) which explains the [Merkle proofs](https://computersciencewiki.org/index.php/Merkle_proof).
