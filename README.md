@@ -34,4 +34,4 @@ _Powered by_ **[immudb](https://github.com/codenotary/immudb)**
 
 ### Miscellanea
 
-- The cryptographic verification of the election data (tampering status) is written in [Go](https://golang.org) and resides in the _server/verifier.go_ folder. It is compiled to WASM and runs in the browser, on the voter's / auditor's machine, automatically at a fixed interval. For instructions on how to recompile it to WASM, see the [README](./server/verifier) in the _server/verifier_ folder.
+- The cryptographic verification of the election data (a.k.a. the _consistency proof_ or _tampering proof_) is written in [Go](https://golang.org) and resides in the _server/verifier.go_ folder. It is compiled to WASM and runs in the browser, on the voter's / auditor's machine, automatically at a fixed interval. For instructions on how to recompile it to WASM, see the [README](./server/verifier) in the _server/verifier_ folder.
