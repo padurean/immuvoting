@@ -15,8 +15,8 @@ _Powered by_ **[immudb](https://github.com/codenotary/immudb)**
 ### Fire it up!
 
 - Run **`immudb`**
-NOTEs:
-   - _**immuvoting**_ will try to connect to it using default config: `localhost`, port `3322`, database `defaultdb` and default credentials (have a look in _**immuvoting**_'s _server/main.go_ for more details)
+
+**_NOTE_**: _**immuvoting**_ will try to connect to it using default config: `localhost`, port `3322`, database `defaultdb` and default credentials (have a look in _**immuvoting**_'s _server/main.go_ for more details)
 
 - from _**immuvoting**_'s _server_ folder run:
    - `go get ./...`
@@ -25,4 +25,5 @@ NOTEs:
 - a separate HTTP server needs to be started to serve the frontend (in the _client_ folder) - e.g. if using [VSCode](https://code.visualstudio.com), you can just use it's _**Go Live**_ feature; or you can use any other solution, like `python -m SimpleHTTPServer`.
 
 **That's all.** You can now access the fronted at _localhost:&lt;xxx&gt;_
-NOTE: Port number depends on the HTTP server you used: for [VSCode](https://code.visualstudio.com)'s _**Go Live**_ it's _**5500**_, for python's `SimpleHTTPServer` it's _**8000**_.
+
+**_NOTE_**: Port number depends on the HTTP server you used: for [VSCode](https://code.visualstudio.com)'s _**Go Live**_ it's _**5500**_, for python's `SimpleHTTPServer` it's _**8000**_.
