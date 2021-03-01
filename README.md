@@ -31,3 +31,7 @@ _Powered by_ **[immudb](https://github.com/codenotary/immudb)**
 **_NOTE_**: Port number depends on the HTTP server you used: for [VSCode](https://code.visualstudio.com)'s _**Go Live**_ it's _**5500**_, for python's `SimpleHTTPServer` it's _**8000**_.
 
 ---
+
+### Miscellanea
+
+- The cryptographic verification of the election data (tampering status) is written in [Go](https://golang.org) and resides in the _server/verifier.go_ folder. It is compiled to WASM and runs in the browser, on the voter's / auditor's machine, automatically at a fixed interval. For instructions on how to recompile it to WASM, see the [README](./server/verifier) in the _server/verifier_ folder.
